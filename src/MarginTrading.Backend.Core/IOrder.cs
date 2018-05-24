@@ -27,7 +27,6 @@ namespace MarginTrading.Backend.Core
         decimal OpenCommission { get; }
         decimal CloseCommission { get; }
         decimal CommissionLot { get; }
-        decimal QuoteRate { get; }
         int AssetAccuracy { get; }
         DateTime? StartClosingDate { get; }
         OrderStatus Status { get; }
@@ -78,7 +77,6 @@ namespace MarginTrading.Backend.Core
         public decimal? ExpectedOpenPrice { get; set; }
         public decimal OpenPrice { get; set; }
         public decimal ClosePrice { get; set; }
-        public decimal QuoteRate { get; set; }
         public int AssetAccuracy { get; set; }
         public decimal Volume { get; set; }
         public decimal? TakeProfit { get; set; }

@@ -9,23 +9,19 @@ using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.Exceptions;
 using MarginTrading.Backend.Core.Messages;
 using MarginTrading.Backend.Core.Services;
-using MarginTrading.Backend.Services.Events;
+using MarginTrading.Common.Extensions;
 
 namespace MarginTrading.Backend.Services.Quotes
 {
-    public class QuoteCacheService : TimerPeriod, IQuoteCacheService, IEventConsumer<BestPriceChangeEventArgs>
+    public class FxRateCacheService : IFxRateCacheService
     {
         private readonly ILog _log;
-        private readonly IMarginTradingBlobRepository _blobRepository;
-        private Dictionary<string, InstrumentBidAskPair> _quotes;
+        private readonly Dictionary<string, InstrumentBidAskPair> _quotes;
         private readonly ReaderWriterLockSlim _lockSlim = new ReaderWriterLockSlim();
-        private static string BlobName = "Quotes";
 
-        public QuoteCacheService(ILog log, IMarginTradingBlobRepository blobRepository) 
-            : base(nameof(QuoteCacheService), 10000, log)
+        public FxRateCacheService(ILog log)
         {
             _log = log;
-            _blobRepository = blobRepository;
             _quotes = new Dictionary<string, InstrumentBidAskPair>();
         }
 
@@ -94,14 +90,24 @@ namespace MarginTrading.Backend.Services.Quotes
             }
         }
 
-        int IEventConsumer.ConsumerRank => 100;
+        public Task SetQuote(PumpQuoteMessage quote)
+        {
+            var bidAskPair = CreatePair(quote);
+            SetQuote(bidAskPair);
+            
+            return Task.CompletedTask;
+        }
 
-        void IEventConsumer<BestPriceChangeEventArgs>.ConsumeEvent(object sender, BestPriceChangeEventArgs ea)
+        public void SetQuote(InstrumentBidAskPair bidAskPair)
         {
             _lockSlim.EnterWriteLock();
             try
             {
-                var bidAskPair = ea.BidAskPair;
+
+                if (bidAskPair == null)
+                {
+                    return;
+                }
 
                 if (_quotes.ContainsKey(bidAskPair.Instrument))
                 {
@@ -117,38 +123,59 @@ namespace MarginTrading.Backend.Services.Quotes
                 _lockSlim.ExitWriteLock();
             }
         }
-
-        public override void Start()
+        
+        private InstrumentBidAskPair CreatePair(PumpQuoteMessage message)
         {
-            _quotes =
-                _blobRepository
-                    .Read<Dictionary<string, InstrumentBidAskPair>>(LykkeConstants.StateBlobContainer, BlobName)
-                    ?.ToDictionary(d => d.Key, d => d.Value) ??
-                new Dictionary<string, InstrumentBidAskPair>();
+            if (!ValidateOrderbook(message))
+            {
+                return null;
+            }
+            
+            var ask = GetBestPrice(true, message.Asks);
+            var bid = GetBestPrice(false, message.Bids);
 
-            base.Start();
+            return ask == null || bid == null
+                ? null
+                : new InstrumentBidAskPair
+                {
+                    Instrument = message.AssetPairId,
+                    Date = message.Timestamp,
+                    Ask = ask.Value,
+                    Bid = bid.Value
+                };
         }
-
-        public override Task Execute()
+        
+        private decimal? GetBestPrice(bool isBuy, IReadOnlyCollection<PumpVolumePriceMessage> prices)
         {
-            return DumpToRepository();
+            if (!prices.Any())
+                return null;
+            return isBuy
+                ? prices.Min(x => x.Price)
+                : prices.Max(x => x.Price);
         }
-
-        public override void Stop()
-        {
-            DumpToRepository().Wait();
-            base.Stop();
-        }
-
-        private async Task DumpToRepository()
+        
+        private bool ValidateOrderbook(PumpQuoteMessage orderbook)
         {
             try
             {
-                await _blobRepository.Write(LykkeConstants.StateBlobContainer, BlobName, GetAllQuotes());
+                orderbook.AssetPairId.RequiredNotNullOrWhiteSpace("orderbook.AssetPairId");
+                orderbook.ExchangeName.RequiredNotNullOrWhiteSpace("orderbook.ExchangeName");
+                orderbook.RequiredNotNull(nameof(orderbook));
+                
+                orderbook.Bids.RequiredNotNullOrEmpty("orderbook.Bids");
+                orderbook.Bids.RemoveAll(e => e == null || e.Price <= 0 || e.Volume == 0);
+                //ValidatePricesSorted(orderbook.Bids, false);
+                
+                orderbook.Asks.RequiredNotNullOrEmpty("orderbook.Asks");
+                orderbook.Asks.RemoveAll(e => e == null || e.Price <= 0 || e.Volume == 0);
+                //ValidatePricesSorted(orderbook.Asks, true);
+
+                return true;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                await _log.WriteErrorAsync(nameof(QuoteCacheService), "Save quotes", "", ex);
+                _log.WriteError(nameof(PumpQuoteMessage), orderbook.ToJson(), e);
+                return false;
             }
         }
     }

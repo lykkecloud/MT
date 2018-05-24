@@ -2,6 +2,7 @@
 using Autofac;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.MatchingEngines;
+using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Services.Events;
 using NUnit.Framework;
 

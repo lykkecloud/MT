@@ -4,6 +4,7 @@ using Autofac;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.MatchedOrders;
 using MarginTrading.Backend.Core.MatchingEngines;
+using MarginTrading.Backend.Core.Services;
 using NUnit.Framework;
 
 namespace MarginTradingTests
