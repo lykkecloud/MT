@@ -5,6 +5,7 @@ using Lykke.SettingsReader;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.MatchingEngines;
 using MarginTrading.Backend.Core.Orderbooks;
+using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Core.Settings;
 using MarginTrading.Backend.Services.AssetPairs;
 using MarginTrading.Backend.Services.Events;
@@ -33,6 +34,10 @@ namespace MarginTrading.Backend.Services.Modules
 				.SingleInstance()
 				.OnActivated(args => args.Instance.Start());
 
+			builder.RegisterType<FxRateCacheService>()
+				.As<IFxRateCacheService>()
+				.SingleInstance();
+
 			builder.RegisterType<FplService>()
 				.As<IFplService>()
 				.SingleInstance();
@@ -42,9 +47,9 @@ namespace MarginTrading.Backend.Services.Modules
 				.As<ITradingConditionsCacheService>()
 				.SingleInstance();
 
-			builder.RegisterType<TradingInstrumnentsCacheService>()
+			builder.RegisterType<TradingInstrumentsCacheService>()
 				.AsSelf()
-				.As<ITradingInstrumnentsCacheService>()
+				.As<ITradingInstrumentsCacheService>()
 				.SingleInstance();
 
 			builder.RegisterType<AccountUpdateService>()

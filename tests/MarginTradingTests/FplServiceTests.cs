@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Autofac;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.MatchedOrders;
+using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Services;
 using MarginTrading.Backend.Services.Events;
 using NUnit.Framework;
@@ -12,7 +13,7 @@ namespace MarginTradingTests
     [TestFixture]
     public class FplServiceTests : BaseTests
     {
-        private IEventChannel<BestPriceChangeEventArgs> _bestPriceConsumer;
+        private IFxRateCacheService _fxRateCacheService;
         private IAccountsCacheService _accountsCacheService;
         private OrdersCache _ordersCache;
 
@@ -20,7 +21,7 @@ namespace MarginTradingTests
         public void SetUp()
         {
             RegisterDependencies();
-            _bestPriceConsumer = Container.Resolve<IEventChannel<BestPriceChangeEventArgs>>();
+            _fxRateCacheService = Container.Resolve<IFxRateCacheService>();
             _accountsCacheService = Container.Resolve<IAccountsCacheService>();
             _ordersCache = Container.Resolve<OrdersCache>();
         }
@@ -29,7 +30,7 @@ namespace MarginTradingTests
         public void Is_Fpl_Buy_Correct()
         {
             const string instrument = "BTCUSD";
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument  = instrument, Ask = 800, Bid = 790 }));
+            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument  = instrument, Ask = 800, Bid = 790 });
 
             var order = new Order
             {
@@ -54,7 +55,7 @@ namespace MarginTradingTests
         public void Is_Fpl_Sell_Correct()
         {
             const string instrument = "BTCUSD";
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = instrument, Ask = 800, Bid = 790 }));
+            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = instrument, Ask = 800, Bid = 790 });
 
             var order = new Order
             {
@@ -79,7 +80,7 @@ namespace MarginTradingTests
         public void Is_Fpl_Correct_With_Commission()
         {
             const string instrument = "BTCUSD";
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = instrument, Ask = 800, Bid = 790 }));
+            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = instrument, Ask = 800, Bid = 790 });
 
             var order = new Order
             {
@@ -107,8 +108,8 @@ namespace MarginTradingTests
         {
             const string instrument = "BTCCHF";
 
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "USDCHF", Ask = 1.072030M, Bid = 1.071940M }));
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "BTCUSD", Ask = 1001M, Bid = 1000M }));
+            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = "USDCHF", Ask = 1.072030M, Bid = 1.071940M });
+            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = "BTCUSD", Ask = 1001M, Bid = 1000M });
 
             var order = new Order
             {
@@ -134,8 +135,8 @@ namespace MarginTradingTests
         {
             const string instrument = "BTCCHF";
 
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "USDCHF", Ask = 1.072030M, Bid = 1.071940M }));
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "BTCUSD", Ask = 1001M, Bid = 1000M }));
+            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = "USDCHF", Ask = 1.072030M, Bid = 1.071940M });
+            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = "BTCUSD", Ask = 1001M, Bid = 1000M });
 
             var order = new Order
             {
@@ -164,9 +165,9 @@ namespace MarginTradingTests
             Accounts[0].Balance = 50000;
             _accountsCacheService.Update(Accounts[0]);
 
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "EURUSD", Ask = 1.061M, Bid = 1.06M }));
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "BTCEUR", Ask = 1092M, Bid = 1091M }));
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "BTCUSD", Ask = 1001M, Bid = 1000M }));
+            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = "EURUSD", Ask = 1.061M, Bid = 1.06M });
+            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = "BTCEUR", Ask = 1092M, Bid = 1091M });
+            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = "BTCUSD", Ask = 1001M, Bid = 1000M });
 
             var orders = new List<Order>
             {

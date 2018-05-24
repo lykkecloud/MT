@@ -2,6 +2,7 @@
 using Autofac;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.Exceptions;
+using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Services;
 using MarginTrading.Backend.Services.Events;
 using NUnit.Framework;
@@ -13,6 +14,7 @@ namespace MarginTradingTests
     {
         private IValidateOrderService _validateOrderService;
         private IEventChannel<BestPriceChangeEventArgs> _bestPriceConsumer;
+        private IFxRateCacheService _fxRateCacheService;
         private OrdersCache _ordersCache;
 
         [SetUp]
@@ -21,6 +23,7 @@ namespace MarginTradingTests
             RegisterDependencies();
             _validateOrderService = Container.Resolve<IValidateOrderService>();
             _bestPriceConsumer = Container.Resolve<IEventChannel<BestPriceChangeEventArgs>>();
+            _fxRateCacheService = Container.Resolve<IFxRateCacheService>();
             _ordersCache = Container.Resolve<OrdersCache>();
         }
 
@@ -38,6 +41,7 @@ namespace MarginTradingTests
 
             var quote = new InstrumentBidAskPair { Instrument = instrument, Bid = 1.55M, Ask = 1.57M };
             _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(quote));
+            _fxRateCacheService.SetQuote(quote);
 
             var order = new Order
             {
@@ -74,6 +78,7 @@ namespace MarginTradingTests
 
             var quote = new InstrumentBidAskPair { Instrument = instrument, Bid = 1.55M, Ask = 1.57M };
             _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(quote));
+            _fxRateCacheService.SetQuote(quote);
 
             var existingLong = new Order
             {
@@ -356,6 +361,7 @@ namespace MarginTradingTests
             const string instrument = "EURUSD";
             var quote = new InstrumentBidAskPair { Instrument = instrument, Bid = 1.55M, Ask = 1.57M };
             _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(quote));
+            _fxRateCacheService.SetQuote(quote);
 
             var order = new Order
             {

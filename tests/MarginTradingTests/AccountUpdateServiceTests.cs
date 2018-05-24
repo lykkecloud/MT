@@ -4,6 +4,7 @@ using System.Linq;
 using Autofac;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.MatchedOrders;
+using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Services;
 using MarginTrading.Backend.Services.Events;
 using NUnit.Framework;
@@ -24,10 +25,10 @@ namespace MarginTradingTests
             _accountsCacheService = Container.Resolve<IAccountsCacheService>();
             _accountUpdateService = Container.Resolve<IAccountUpdateService>();
             _ordersCache = Container.Resolve<OrdersCache>();
-            var bestPriceConsumer = Container.Resolve<IEventChannel<BestPriceChangeEventArgs>>();
+            var fxRateCacheService = Container.Resolve<IFxRateCacheService>();
 
-            bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "EURUSD", Bid = 1.02M, Ask = 1.04M }));
-            bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "BTCUSD", Bid = 905.1M, Ask = 905.35M }));
+            fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = "EURUSD", Bid = 1.02M, Ask = 1.04M });
+            fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = "BTCUSD", Bid = 905.1M, Ask = 905.35M });
         }
 
         [SetUp]
