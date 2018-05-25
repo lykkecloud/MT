@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Autofac;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.MatchedOrders;
-using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Services.Events;
 using MarginTrading.Backend.Services.TradingConditions;
 using MarginTrading.SettingsService.Contracts;
@@ -19,7 +18,7 @@ namespace MarginTradingTests
     {
         private ICommissionService _swapService;
         private ITradingInstrumentsApi _tradingInstruments;
-        private IFxRateCacheService _fxRateCacheService;
+        private IEventChannel<BestPriceChangeEventArgs> _bestPriceConsumer;
         private TradingInstrumentsManager _accountAssetsManager;
 
         [OneTimeSetUp]
@@ -30,13 +29,13 @@ namespace MarginTradingTests
             _accountAssetsManager = Container.Resolve<TradingInstrumentsManager>();
             _swapService = Container.Resolve<ICommissionService>();
             _tradingInstruments = Container.Resolve<ITradingInstrumentsApi>();
-            _fxRateCacheService = Container.Resolve<IFxRateCacheService>();
+            _bestPriceConsumer = Container.Resolve<IEventChannel<BestPriceChangeEventArgs>>();
         }
 
         [Test]
         public async Task Is_Swaps_Correct()
         {
-            _fxRateCacheService.SetQuote(new InstrumentBidAskPair { Instrument = "EURUSD", Bid = 1.02M, Ask = 1.04M });
+            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "EURUSD", Bid = 1.02M, Ask = 1.04M }));
 
             var instrumentContract = new TradingInstrumentContract
             {

@@ -10,7 +10,6 @@ using Lykke.Service.ExchangeConnector.Client.Models;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.FakeExchangeConnector;
 using MarginTrading.Backend.Core.FakeExchangeConnector.Caches;
-using MarginTrading.Backend.Core.Services;
 using MarginTrading.Common.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Rest;

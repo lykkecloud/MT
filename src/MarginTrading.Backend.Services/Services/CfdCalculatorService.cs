@@ -1,19 +1,18 @@
 ﻿using MarginTrading.Backend.Core;
-using MarginTrading.Backend.Core.Services;
 
 namespace MarginTrading.Backend.Services
 {
     public class CfdCalculatorService : ICfdCalculatorService
     {
         private readonly IAssetPairsCache _assetPairsCache;
-        private readonly IFxRateCacheService _fxRateCacheService;
+        private readonly IQuoteCacheService _quoteCacheService;
 
         public CfdCalculatorService(
             IAssetPairsCache assetPairsCache,
-            IFxRateCacheService fxRateCacheService)
+            IQuoteCacheService quoteCacheService)
         {
             _assetPairsCache = assetPairsCache;
-            _fxRateCacheService = fxRateCacheService;
+            _quoteCacheService = quoteCacheService;
         }
 
         public decimal GetQuoteRateForBaseAsset(string accountAssetId, string assetPairId, string legalEntity, 
@@ -28,11 +27,11 @@ namespace MarginTrading.Backend.Services
 
             var rate = metricIsPositive
                 ? assetPairSubst.BaseAssetId == assetPair.BaseAssetId
-                    ? _fxRateCacheService.GetQuote(assetPairSubst.Id).Ask
-                    : 1 / _fxRateCacheService.GetQuote(assetPairSubst.Id).Bid
+                    ? _quoteCacheService.GetQuote(assetPairSubst.Id).Ask
+                    : 1 / _quoteCacheService.GetQuote(assetPairSubst.Id).Bid
                 : assetPairSubst.BaseAssetId == assetPair.BaseAssetId
-                    ? _fxRateCacheService.GetQuote(assetPairSubst.Id).Bid
-                    : 1 / _fxRateCacheService.GetQuote(assetPairSubst.Id).Ask;
+                    ? _quoteCacheService.GetQuote(assetPairSubst.Id).Bid
+                    : 1 / _quoteCacheService.GetQuote(assetPairSubst.Id).Ask;
             
             return rate;
         }
@@ -49,11 +48,11 @@ namespace MarginTrading.Backend.Services
            
             var rate = metricIsPositive
                 ? assetPairSubst.BaseAssetId == assetPair.QuoteAssetId
-                    ? _fxRateCacheService.GetQuote(assetPairSubst.Id).Ask
-                    : 1 / _fxRateCacheService.GetQuote(assetPairSubst.Id).Bid
+                    ? _quoteCacheService.GetQuote(assetPairSubst.Id).Ask
+                    : 1 / _quoteCacheService.GetQuote(assetPairSubst.Id).Bid
                 : assetPairSubst.BaseAssetId == assetPair.QuoteAssetId
-                    ? _fxRateCacheService.GetQuote(assetPairSubst.Id).Bid
-                    : 1 / _fxRateCacheService.GetQuote(assetPairSubst.Id).Ask;
+                    ? _quoteCacheService.GetQuote(assetPairSubst.Id).Bid
+                    : 1 / _quoteCacheService.GetQuote(assetPairSubst.Id).Ask;
             
             return rate;
         }

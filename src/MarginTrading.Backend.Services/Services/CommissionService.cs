@@ -9,12 +9,12 @@ namespace MarginTrading.Backend.Services
     [UsedImplicitly]
     public class CommissionService : ICommissionService
     {
-        private readonly ITradingInstrumentsCacheService _accountAssetsCacheService;
+        private readonly ITradingInstrumnentsCacheService _accountAssetsCacheService;
         private readonly ICfdCalculatorService _cfdCalculatorService;
         private readonly IAssetsCache _assetsCache;
 
         public CommissionService(
-            ITradingInstrumentsCacheService accountAssetsCacheService,
+            ITradingInstrumnentsCacheService accountAssetsCacheService,
             ICfdCalculatorService cfdCalculatorService,
             IAssetsCache assetsCache)
         {

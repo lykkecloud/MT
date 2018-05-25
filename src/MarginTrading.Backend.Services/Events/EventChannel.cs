@@ -55,7 +55,7 @@ namespace MarginTrading.Backend.Services.Events
                     throw new ObjectDisposedException(GetType().Name);
 
                 _consumers =
-                    _container.Resolve<IEnumerable<IEventConsumer<TEventArgs>>>().OrderBy(x => x.ConsumerRank).ToArray();
+                    Enumerable.OrderBy(_container.Resolve<IEnumerable<IEventConsumer<TEventArgs>>>(), x => x.ConsumerRank).ToArray();
                 _container = null;
             }
             return _consumers.Length;

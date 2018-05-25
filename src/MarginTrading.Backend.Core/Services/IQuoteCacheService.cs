@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MarginTrading.Backend.Core.Services
+namespace MarginTrading.Backend.Core
 {
     public interface IQuoteCacheService
     {

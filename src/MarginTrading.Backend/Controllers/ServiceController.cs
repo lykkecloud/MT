@@ -1,5 +1,4 @@
 ﻿using MarginTrading.Backend.Core;
-using MarginTrading.Backend.Core.Services;
 using MarginTrading.Common.Middleware;
 using MarginTrading.Contract.BackendContracts;
 using Microsoft.AspNetCore.Authorization;

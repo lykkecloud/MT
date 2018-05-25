@@ -1,17 +1,15 @@
 ﻿using Autofac;
 using MarginTrading.Backend.Core;
-using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Services.Events;
 using NUnit.Framework;
 
 namespace MarginTradingTests
 {
     [TestFixture]
-    public class QuoteCasheServiceTests : BaseTests
+    public class QuoteCashServiceTests : BaseTests
     {
         private IQuoteCacheService _quoteCacheService;
         private IEventChannel<BestPriceChangeEventArgs> _bestPriceConsumer;
-        private IFxRateCacheService _fxRateCacheService;
         private ICfdCalculatorService _cfdCalculatorService;
 
         [OneTimeSetUp]
@@ -20,7 +18,6 @@ namespace MarginTradingTests
             RegisterDependencies();
             _quoteCacheService = Container.Resolve<IQuoteCacheService>();
             _bestPriceConsumer = Container.Resolve<IEventChannel<BestPriceChangeEventArgs>>();
-            _fxRateCacheService = Container.Resolve<IFxRateCacheService>();
             _cfdCalculatorService = Container.Resolve<ICfdCalculatorService>();
         }
 
@@ -43,9 +40,7 @@ namespace MarginTradingTests
         {
             const string instrument = "BTCUSD";
 
-            var quoteMsg = new InstrumentBidAskPair {Instrument = instrument, Ask = 905.35M, Bid = 905.1M};
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(quoteMsg));
-            _fxRateCacheService.SetQuote(quoteMsg);
+            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = instrument, Ask = 905.35M, Bid = 905.1M }));
 
             var quote = _quoteCacheService.GetQuote(instrument);
 
@@ -67,9 +62,7 @@ namespace MarginTradingTests
         {
             const string instrument = "USDCHF";
 
-            var quoteMsg = new InstrumentBidAskPair {Instrument = "USDCHF", Ask = 0.9982M, Bid = 0.9980M};
-            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(quoteMsg));
-            _fxRateCacheService.SetQuote(quoteMsg);
+            _bestPriceConsumer.SendEvent(this, new BestPriceChangeEventArgs(new InstrumentBidAskPair { Instrument = "USDCHF", Ask = 0.9982M, Bid = 0.9980M }));
 
             var quote = _quoteCacheService.GetQuote(instrument);
 

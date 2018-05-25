@@ -9,7 +9,7 @@ using MarginTrading.Backend.Core.TradingConditions;
 namespace MarginTrading.Backend.Services.TradingConditions
 {
     [UsedImplicitly]
-    public class  TradingInstrumentsCacheService : ITradingInstrumentsCacheService
+    public class  TradingInstrumnentsCacheService : ITradingInstrumnentsCacheService
     {
         private Dictionary<(string, string), ITradingInstrument> _instrumentsCache =
             new Dictionary<(string, string), ITradingInstrument>();

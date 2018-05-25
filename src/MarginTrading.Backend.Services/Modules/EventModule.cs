@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Services.Events;
 
 namespace MarginTrading.Backend.Services.Modules
@@ -11,7 +10,7 @@ namespace MarginTrading.Backend.Services.Modules
             builder.RegisterType<EventChannel<BestPriceChangeEventArgs>>()
                 .As<IEventChannel<BestPriceChangeEventArgs>>()
                 .SingleInstance();
-            
+
             builder.RegisterType<EventChannel<MarginCallEventArgs>>()
                 .As<IEventChannel<MarginCallEventArgs>>()
                 .SingleInstance();

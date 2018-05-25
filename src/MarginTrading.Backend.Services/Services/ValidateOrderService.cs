@@ -3,7 +3,6 @@ using System.Linq;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.Exceptions;
 using MarginTrading.Backend.Core.Messages;
-using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Core.TradingConditions;
 using MarginTrading.Backend.Services.AssetPairs;
 using MarginTrading.Backend.Services.Helpers;
@@ -16,7 +15,7 @@ namespace MarginTrading.Backend.Services
         private readonly IQuoteCacheService _quoteCashService;
         private readonly IAccountUpdateService _accountUpdateService;
         private readonly IAccountsCacheService _accountsCacheService;
-        private readonly ITradingInstrumentsCacheService _accountAssetsCacheService;
+        private readonly ITradingInstrumnentsCacheService _accountAssetsCacheService;
         private readonly IAssetPairsCache _assetPairsCache;
         private readonly OrdersCache _ordersCache;
         private readonly IAssetPairDayOffService _assetDayOffService;
@@ -25,7 +24,7 @@ namespace MarginTrading.Backend.Services
             IQuoteCacheService quoteCashService,
             IAccountUpdateService accountUpdateService,
             IAccountsCacheService accountsCacheService,
-            ITradingInstrumentsCacheService accountAssetsCacheService,
+            ITradingInstrumnentsCacheService accountAssetsCacheService,
             IAssetPairsCache assetPairsCache,
             OrdersCache ordersCache,
             IAssetPairDayOffService assetDayOffService)

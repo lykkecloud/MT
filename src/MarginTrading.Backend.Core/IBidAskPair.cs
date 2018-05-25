@@ -27,7 +27,7 @@ namespace MarginTrading.Backend.Core
         public DateTime Date { get; set; }
     }
 
-    public static class BidAskPairExtension
+    public static class BidAskPairExtetsion
     {
         public static decimal GetPriceForOrderType(this IBidAskPair bidAskPair, OrderDirection orderType)
         {

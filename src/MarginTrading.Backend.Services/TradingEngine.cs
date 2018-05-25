@@ -8,7 +8,6 @@ using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.Exceptions;
 using MarginTrading.Backend.Core.MatchedOrders;
 using MarginTrading.Backend.Core.MatchingEngines;
-using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Services.AssetPairs;
 using MarginTrading.Backend.Services.Events;
 using MarginTrading.Backend.Services.Infrastructure;
@@ -35,7 +34,7 @@ namespace MarginTrading.Backend.Services
         private readonly IEquivalentPricesService _equivalentPricesService;
         private readonly IAccountsCacheService _accountsCacheService;
         private readonly OrdersCache _ordersCache;
-        private readonly ITradingInstrumentsCacheService _accountAssetsCacheService;
+        private readonly ITradingInstrumnentsCacheService _accountAssetsCacheService;
         private readonly IMatchingEngineRouter _meRouter;
         private readonly IThreadSwitcher _threadSwitcher;
         private readonly IContextFactory _contextFactory;
@@ -60,7 +59,7 @@ namespace MarginTrading.Backend.Services
             IEquivalentPricesService equivalentPricesService,
             IAccountsCacheService accountsCacheService,
             OrdersCache ordersCache,
-            ITradingInstrumentsCacheService accountAssetsCacheService,
+            ITradingInstrumnentsCacheService accountAssetsCacheService,
             IMatchingEngineRouter meRouter,
             IThreadSwitcher threadSwitcher,
             IContextFactory contextFactory,

@@ -8,7 +8,6 @@ using Common.Log;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.Exceptions;
 using MarginTrading.Backend.Core.Messages;
-using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Services.Events;
 
 namespace MarginTrading.Backend.Services.Quotes
