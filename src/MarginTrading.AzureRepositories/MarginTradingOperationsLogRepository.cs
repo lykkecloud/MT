@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using AzureStorage;
+using Common;
 using MarginTrading.Common.Services;
 using Microsoft.WindowsAzure.Storage.Table;
 
@@ -45,7 +46,8 @@ namespace MarginTrading.AzureRepositories
         public async Task AddLogAsync(IOperationLog logEntity)
         {
             var entity = OperationLogEntity.Create(logEntity);
-            await _tableStorage.InsertAndGenerateRowKeyAsTimeAsync(entity, DateTime.UtcNow);
+            Console.Write(entity.ToJson());
+            //await _tableStorage.InsertAndGenerateRowKeyAsTimeAsync(entity, DateTime.UtcNow);
         }
     }
 }
