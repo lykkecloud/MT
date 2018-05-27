@@ -52,6 +52,7 @@ namespace MarginTradingTests.OrderBooks
 
         private Mock<IEventChannel<BestPriceChangeEventArgs>> _bestPricesChannelMock;
         private Mock<IDateService> _dateServiceMock;
+        private Mock<IExternalOrderbookCache> _externalOrderbookCacheMock;
         private Mock<ILog> _logMock;
         
         
@@ -65,6 +66,7 @@ namespace MarginTradingTests.OrderBooks
         {
             _bestPricesChannelMock = new Mock<IEventChannel<BestPriceChangeEventArgs>>();
             _dateServiceMock = new Mock<IDateService>();
+            _externalOrderbookCacheMock = new Mock<IExternalOrderbookCache>();
             _logMock = new Mock<ILog>();
         }
         
@@ -76,7 +78,7 @@ namespace MarginTradingTests.OrderBooks
         private ExternalOrderBooksList GetNewOrderbooksList()
         {
             return new ExternalOrderBooksList(_bestPricesChannelMock.Object, _dateServiceMock.Object,
-                _logMock.Object);
+                _externalOrderbookCacheMock.Object, _logMock.Object);
         }
 
         private void AssertErrorLogged(string expectedErrorMessage)

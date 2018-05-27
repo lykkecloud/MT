@@ -2,6 +2,7 @@
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Services.AssetPairs;
 using MarginTrading.Backend.Services.Assets;
+using MarginTrading.Backend.Services.Caches;
 using Rocks.Caching;
 
 namespace MarginTrading.Backend.Services.Modules
@@ -35,6 +36,10 @@ namespace MarginTrading.Backend.Services.Modules
                    .As<ICacheProvider>()
                    .AsSelf()
                    .SingleInstance();
+
+            builder.RegisterType<ExternalOrderbookCache>()
+                .As<IExternalOrderbookCache>()
+                .SingleInstance();
         }
     }
 }

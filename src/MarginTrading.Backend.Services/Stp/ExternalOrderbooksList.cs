@@ -17,12 +17,16 @@ namespace MarginTrading.Backend.Services.Stp
         private readonly IEventChannel<BestPriceChangeEventArgs> _bestPriceChangeEventChannel;
         private readonly IDateService _dateService;
         private readonly ILog _log;
+        private readonly IExternalOrderbookCache _orderbooks;
 
         public ExternalOrderBooksList(IEventChannel<BestPriceChangeEventArgs> bestPriceChangeEventChannel,
-            IDateService dateService, ILog log)
+            IDateService dateService,
+            IExternalOrderbookCache orderbooks,
+            ILog log)
         {
             _bestPriceChangeEventChannel = bestPriceChangeEventChannel;
             _dateService = dateService;
+            _orderbooks = orderbooks;
             _log = log;
         }
 
@@ -34,8 +38,6 @@ namespace MarginTrading.Backend.Services.Stp
         /// Note that it is unsafe to even read the inner dictionary without locking.
         /// Please use <see cref="ReadWriteLockedDictionary{TKey,TValue}.TryReadValue{TResult}"/> for this purpose.
         /// </remarks>
-        private readonly ReadWriteLockedDictionary<string, Dictionary<string, ExternalOrderBook>> _orderbooks =
-            new ReadWriteLockedDictionary<string, Dictionary<string, ExternalOrderBook>>();
 
         public List<(string source, decimal? price)> GetPricesForOpen(IOrder order)
         {
@@ -85,31 +87,26 @@ namespace MarginTrading.Backend.Services.Stp
             {
                 Bid = 0,
                 Ask = decimal.MaxValue,
-                Date = _dateService.Now(),
+                Date = orderbook.Timestamp,
                 Instrument = orderbook.AssetPairId
             };
 
-            Dictionary<string, ExternalOrderBook> UpdateOrderbooksDictionary(string assetPairId,
-                Dictionary<string, ExternalOrderBook> dict)
+            ExternalOrderBook UpdateOrderbooksDictionary((string, string) key, ExternalOrderBook oldValue)
             {
-                dict[orderbook.ExchangeName] = orderbook;
-                foreach (var pair in dict.Values.RequiredNotNullOrEmptyCollection(nameof(dict)))
-                {
-                    // guaranteed to be sorted best first
-                    var bestBid = pair.Bids.First().Price;
-                    var bestAsk = pair.Asks.First().Price;
-                    if (bestBid > bba.Bid)
-                        bba.Bid = bestBid;
+                // guaranteed to be sorted best first
+                var bestBid = orderbook.Bids.First().Price;
+                var bestAsk = orderbook.Asks.First().Price;
+                if (bestBid > bba.Bid)
+                    bba.Bid = bestBid;
 
-                    if (bestAsk < bba.Ask)
-                        bba.Ask = bestAsk;
-                }
-
-                return dict;
+                if (bestAsk < bba.Ask)
+                    bba.Ask = bestAsk;
+            
+                return orderbook;
             }
 
-            _orderbooks.AddOrUpdate(orderbook.AssetPairId,
-                k => UpdateOrderbooksDictionary(k, new Dictionary<string, ExternalOrderBook>()),
+            _orderbooks.AddOrUpdate((orderbook.AssetPairId, orderbook.ExchangeName),
+                k => UpdateOrderbooksDictionary(k, null),
                 UpdateOrderbooksDictionary);
 
             _bestPriceChangeEventChannel.SendEvent(this, new BestPriceChangeEventArgs(bba));
