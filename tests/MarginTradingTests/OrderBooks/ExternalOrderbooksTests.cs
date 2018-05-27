@@ -5,6 +5,7 @@ using System.Linq;
 using Common.Log;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.Orderbooks;
+using MarginTrading.Backend.Services.Caches;
 using MarginTrading.Backend.Services.Events;
 using MarginTrading.Backend.Services.Stp;
 using MarginTrading.Common.Services;
@@ -52,7 +53,6 @@ namespace MarginTradingTests.OrderBooks
 
         private Mock<IEventChannel<BestPriceChangeEventArgs>> _bestPricesChannelMock;
         private Mock<IDateService> _dateServiceMock;
-        private Mock<IExternalOrderbookCache> _externalOrderbookCacheMock;
         private Mock<ILog> _logMock;
         
         
@@ -66,7 +66,6 @@ namespace MarginTradingTests.OrderBooks
         {
             _bestPricesChannelMock = new Mock<IEventChannel<BestPriceChangeEventArgs>>();
             _dateServiceMock = new Mock<IDateService>();
-            _externalOrderbookCacheMock = new Mock<IExternalOrderbookCache>();
             _logMock = new Mock<ILog>();
         }
         
@@ -77,8 +76,9 @@ namespace MarginTradingTests.OrderBooks
 
         private ExternalOrderBooksList GetNewOrderbooksList()
         {
-            return new ExternalOrderBooksList(_bestPricesChannelMock.Object, _dateServiceMock.Object,
-                _externalOrderbookCacheMock.Object, _logMock.Object);
+            
+            return new ExternalOrderBooksList(_bestPricesChannelMock.Object,
+                _dateServiceMock.Object, new ExternalOrderbookCache(), _logMock.Object);
         }
 
         private void AssertErrorLogged(string expectedErrorMessage)

@@ -61,27 +61,6 @@ namespace MarginTrading.Backend.Services.Caches
             return readFunc(orderbooks.Any(), assetPair, orderbooks);
         }
 
-        public ExternalOrderBook GetOrAdd((string, string) key, Func<(string, string), ExternalOrderBook> valueFactory)
-        {
-            EnsureLockKey(key);
-            
-            _locks[key].EnterUpgradeableReadLock();
-            try
-            {
-                if (!_dictionary.TryGetValue(key, out var value))
-                {
-                    value = valueFactory(key);
-                    Add(key, value);
-                }
-
-                return value;
-            }
-            finally
-            {
-                _locks[key].ExitUpgradeableReadLock();
-            }
-        }
-
         public ExternalOrderBook AddOrUpdate((string, string) key, Func<(string, string), ExternalOrderBook> valueFactory,
             Func<(string, string), ExternalOrderBook, ExternalOrderBook> updateValueFactory)
         {

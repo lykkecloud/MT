@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -14,8 +15,11 @@ namespace MarginTrading.Backend.Services
         private readonly Dictionary<string, HashSet<string>> _orderIdsByInstrumentId;
         private readonly Dictionary<(string, string), HashSet<string>> _orderIdsByAccountIdAndInstrumentId;
         private readonly Dictionary<string, HashSet<string>> _orderIdsByMarginInstrumentId;
+        
         private readonly OrderStatus _status;
         private readonly ReaderWriterLockSlim _lockSlim = new ReaderWriterLockSlim();
+        private readonly ConcurrentDictionary<string, ReaderWriterLockSlim> _locksByInstrument =
+            new ConcurrentDictionary<string, ReaderWriterLockSlim>();
 
         public OrderCacheGroup(IReadOnlyCollection<Order> orders, OrderStatus status)
         {
@@ -53,7 +57,7 @@ namespace MarginTrading.Backend.Services
 
         public void Add(Order order)
         {
-            _lockSlim.EnterWriteLock();
+            EnsureLockKey(order.Instrument);
 
             try
             {
@@ -62,10 +66,6 @@ namespace MarginTrading.Backend.Services
                 if (!_orderIdsByAccountId.ContainsKey(order.AccountId))
                     _orderIdsByAccountId.Add(order.AccountId, new HashSet<string>());
                 _orderIdsByAccountId[order.AccountId].Add(order.Id);
-
-                if (!_orderIdsByInstrumentId.ContainsKey(order.Instrument))
-                    _orderIdsByInstrumentId.Add(order.Instrument, new HashSet<string>());
-                _orderIdsByInstrumentId[order.Instrument].Add(order.Id);
 
                 var accountInstrumentCacheKey = GetAccountInstrumentCacheKey(order.AccountId, order.Instrument);
 
@@ -84,6 +84,20 @@ namespace MarginTrading.Backend.Services
             {
                 _lockSlim.ExitWriteLock();
             }
+            
+            _locksByInstrument[order.Instrument].EnterWriteLock();
+            try
+            {
+                if (!_orderIdsByInstrumentId.ContainsKey(order.Instrument))
+                    _orderIdsByInstrumentId.Add(order.Instrument, new HashSet<string>());
+                _orderIdsByInstrumentId[order.Instrument].Add(order.Id);
+            }
+            finally
+            {
+                _locksByInstrument[order.Instrument].ExitWriteLock();    
+            }
+            
+            _lockSlim.EnterWriteLock();
 
             var account = MtServiceLocator.AccountsCacheService.Get(order.AccountId);
             account.CacheNeedsToBeUpdated();
@@ -91,13 +105,14 @@ namespace MarginTrading.Backend.Services
 
         public void Remove(Order order)
         {
+            EnsureLockKey(order.Instrument);
+            
             _lockSlim.EnterWriteLock();
 
             try
             {
                 if (_ordersById.Remove(order.Id))
                 {
-                    _orderIdsByInstrumentId[order.Instrument].Remove(order.Id);
                     _orderIdsByAccountId[order.AccountId].Remove(order.Id);
                     _orderIdsByAccountIdAndInstrumentId[GetAccountInstrumentCacheKey(order.AccountId, order.Instrument)].Remove(order.Id);
 
@@ -111,6 +126,16 @@ namespace MarginTrading.Backend.Services
             finally
             {
                 _lockSlim.ExitWriteLock();
+            }
+            
+            _locksByInstrument[order.Instrument].EnterWriteLock();
+            try
+            {
+                _orderIdsByInstrumentId[order.Instrument].Remove(order.Id);
+            }
+            finally
+            {
+                _locksByInstrument[order.Instrument].ExitWriteLock();    
             }
 
             var account = MtServiceLocator.AccountsCacheService?.Get(order.AccountId);
@@ -155,14 +180,27 @@ namespace MarginTrading.Backend.Services
             if (string.IsNullOrWhiteSpace(instrument))
                 throw new ArgumentException(nameof(instrument));
 
-            _lockSlim.EnterReadLock();
-
+            EnsureLockKey(instrument);
+            
+            List<string> orderIds = null;
+            
+            _locksByInstrument[instrument].EnterReadLock();
             try
             {
                 if (!_orderIdsByInstrumentId.ContainsKey(instrument))
                     return new List<Order>();
 
-                return _orderIdsByInstrumentId[instrument].Select(id => _ordersById[id]).ToList();
+                orderIds = _orderIdsByInstrumentId[instrument].ToList();
+            }
+            finally
+            {
+                _locksByInstrument[instrument].ExitReadLock();
+            }
+            
+            _lockSlim.EnterReadLock();
+            try
+            {
+                return orderIds.Select(id => _ordersById[id]).ToList();
             }
             finally
             {
@@ -261,6 +299,14 @@ namespace MarginTrading.Backend.Services
         private (string, string) GetAccountInstrumentCacheKey(string accountId, string instrumentId)
         {
             return (accountId, instrumentId);
+        }
+        
+        private void EnsureLockKey(string key)
+        {
+            if (_locksByInstrument.ContainsKey(key)) 
+                return;
+            
+            _locksByInstrument.TryAdd(key, new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion));
         }
 
         #endregion

@@ -91,7 +91,7 @@ namespace MarginTrading.Backend.Services.Stp
                 Instrument = orderbook.AssetPairId
             };
 
-            ExternalOrderBook UpdateOrderbooksDictionary((string, string) key, ExternalOrderBook oldValue)
+            ExternalOrderBook UpdateOrderbooksDictionary((string, string) key, ExternalOrderBook oldValue = null)
             {
                 // guaranteed to be sorted best first
                 var bestBid = orderbook.Bids.First().Price;
@@ -106,7 +106,7 @@ namespace MarginTrading.Backend.Services.Stp
             }
 
             _orderbooks.AddOrUpdate((orderbook.AssetPairId, orderbook.ExchangeName),
-                k => UpdateOrderbooksDictionary(k, null),
+                k => UpdateOrderbooksDictionary(k),
                 UpdateOrderbooksDictionary);
 
             _bestPriceChangeEventChannel.SendEvent(this, new BestPriceChangeEventArgs(bba));
