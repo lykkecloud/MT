@@ -45,8 +45,11 @@ namespace MarginTrading.Backend.Services.Quotes
             _outdatedQuotes = new Dictionary<string, OutdatedQuoteInfo>();
         }
 
+        //TODO:
         public override Task Execute()
         {
+            return Task.CompletedTask;
+            
             var maxQuoteAgeInSeconds = _marginSettings.MaxMarketMakerLimitOrderAge >= 0
                 ? _marginSettings.MaxMarketMakerLimitOrderAge
                 : DefaultMaxQuoteAgeInSeconds;
