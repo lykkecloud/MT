@@ -8,22 +8,24 @@ using Common.Log;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.Exceptions;
 using MarginTrading.Backend.Core.Messages;
+using MarginTrading.Backend.Core.Services;
 using MarginTrading.Backend.Core.Settings;
-using MarginTrading.Backend.Services.Events;
+using MarginTrading.Common.Extensions;
+using MarginTrading.OrderbookAggregator.Contracts.Messages;
 
 namespace MarginTrading.Backend.Services.Quotes
 {
-    public class QuoteCacheService : TimerPeriod, IQuoteCacheService, IEventConsumer<BestPriceChangeEventArgs>
+    public class FxRateCacheService : TimerPeriod, IFxRateCacheService
     {
         private readonly ILog _log;
         private readonly IMarginTradingBlobRepository _blobRepository;
         private Dictionary<string, InstrumentBidAskPair> _quotes;
         private readonly ReaderWriterLockSlim _lockSlim = new ReaderWriterLockSlim();
-        private static string BlobName = "Quotes";
+        private static string BlobName = "FxRates";
 
-        public QuoteCacheService(ILog log, IMarginTradingBlobRepository blobRepository, 
-            MarginTradingSettings marginTradingSettings) 
-            : base(nameof(QuoteCacheService), marginTradingSettings.BlobPersistence.QuotesDumpPeriodMilliseconds, log)
+        public FxRateCacheService(ILog log, IMarginTradingBlobRepository blobRepository, 
+            MarginTradingSettings marginTradingSettings)
+            : base(nameof(FxRateCacheService), marginTradingSettings.BlobPersistence.FxRatesDumpPeriodMilliseconds, log)
         {
             _log = log;
             _blobRepository = blobRepository;
@@ -95,14 +97,24 @@ namespace MarginTrading.Backend.Services.Quotes
             }
         }
 
-        int IEventConsumer.ConsumerRank => 100;
+        public Task SetQuote(ExternalExchangeOrderbookMessage quote)
+        {
+            var bidAskPair = CreatePair(quote);
+            SetQuote(bidAskPair);
+            
+            return Task.CompletedTask;
+        }
 
-        void IEventConsumer<BestPriceChangeEventArgs>.ConsumeEvent(object sender, BestPriceChangeEventArgs ea)
+        public void SetQuote(InstrumentBidAskPair bidAskPair)
         {
             _lockSlim.EnterWriteLock();
             try
             {
-                var bidAskPair = ea.BidAskPair;
+
+                if (bidAskPair == null)
+                {
+                    return;
+                }
 
                 if (_quotes.ContainsKey(bidAskPair.Instrument))
                 {
@@ -118,7 +130,62 @@ namespace MarginTrading.Backend.Services.Quotes
                 _lockSlim.ExitWriteLock();
             }
         }
+        
+        private InstrumentBidAskPair CreatePair(ExternalExchangeOrderbookMessage message)
+        {
+            /*if (!ValidateOrderbook(message))
+            {
+                return null;
+            }*/
+            
+            var ask = GetBestPrice(true, message.Asks);
+            var bid = GetBestPrice(false, message.Bids);
 
+            return ask == null || bid == null
+                ? null
+                : new InstrumentBidAskPair
+                {
+                    Instrument = message.AssetPairId,
+                    Date = message.Timestamp,
+                    Ask = ask.Value,
+                    Bid = bid.Value
+                };
+        }
+        
+        private decimal? GetBestPrice(bool isBuy, IReadOnlyCollection<VolumePrice> prices)
+        {
+            if (!prices.Any())
+                return null;
+            return isBuy
+                ? prices.Min(x => x.Price)
+                : prices.Max(x => x.Price);
+        }
+        
+        private bool ValidateOrderbook(ExternalExchangeOrderbookMessage orderbook)
+        {
+            try
+            {
+                orderbook.AssetPairId.RequiredNotNullOrWhiteSpace("orderbook.AssetPairId");
+                orderbook.ExchangeName.RequiredNotNullOrWhiteSpace("orderbook.ExchangeName");
+                orderbook.RequiredNotNull(nameof(orderbook));
+                
+                orderbook.Bids.RequiredNotNullOrEmpty("orderbook.Bids");
+                orderbook.Bids.RemoveAll(e => e == null || e.Price <= 0 || e.Volume == 0);
+                //ValidatePricesSorted(orderbook.Bids, false);
+                
+                orderbook.Asks.RequiredNotNullOrEmpty("orderbook.Asks");
+                orderbook.Asks.RemoveAll(e => e == null || e.Price <= 0 || e.Volume == 0);
+                //ValidatePricesSorted(orderbook.Asks, true);
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                _log.WriteError(nameof(ExternalExchangeOrderbookMessage), orderbook.ToJson(), e);
+                return false;
+            }
+        }
+        
         public override void Start()
         {
             _quotes =
@@ -149,7 +216,7 @@ namespace MarginTrading.Backend.Services.Quotes
             }
             catch (Exception ex)
             {
-                await _log.WriteErrorAsync(nameof(QuoteCacheService), "Save quotes", "", ex);
+                await _log.WriteErrorAsync(nameof(FxRateCacheService), "Save fx rates", "", ex);
             }
         }
     }
