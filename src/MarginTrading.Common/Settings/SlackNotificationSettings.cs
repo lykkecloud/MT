@@ -1,6 +1,4 @@
-﻿using Lykke.SettingsReader.Attributes;
-
-namespace MarginTrading.Common.Settings
+﻿namespace MarginTrading.Common.Settings
 {
     public class SlackNotificationSettings
     {

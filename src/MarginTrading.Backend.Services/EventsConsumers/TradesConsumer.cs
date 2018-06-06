@@ -1,5 +1,4 @@
-﻿using System;
-using MarginTrading.Backend.Core;
+﻿using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Services.Events;
 using MarginTrading.Backend.Services.Notifications;
 using MarginTrading.Common.Extensions;

@@ -1,6 +1,5 @@
 ﻿using System;
 using Autofac;
-using Autofac.Extensions.DependencyInjection;
 using Common.Log;
 using Lykke.HttpClientGenerator;
 using Lykke.HttpClientGenerator.Retries;
@@ -9,12 +8,10 @@ using Lykke.Service.EmailSender;
 using Lykke.Service.ExchangeConnector.Client;
 using Lykke.SettingsReader;
 using MarginTrading.AccountsManagement.Contracts;
-using MarginTrading.Backend.Services.FakeExchangeConnector;
 using MarginTrading.Backend.Services.Settings;
 using MarginTrading.Backend.Services.Stubs;
 using MarginTrading.Common.Services.Client;
 using MarginTrading.SettingsService.Contracts;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace MarginTrading.Backend.Modules
 {

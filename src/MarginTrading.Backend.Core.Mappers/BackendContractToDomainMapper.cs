@@ -1,10 +1,7 @@
-﻿using System.Linq;
-using MarginTrading.Backend.Core.MatchedOrders;
+﻿using MarginTrading.Backend.Core.MatchedOrders;
 using MarginTrading.Backend.Core.MatchingEngines;
-using MarginTrading.Backend.Core.TradingConditions;
 using MarginTrading.Common.Extensions;
 using MarginTrading.Contract.BackendContracts;
-using MarginTrading.Contract.BackendContracts.TradingConditions;
 
 namespace MarginTrading.Backend.Core.Mappers
 {

@@ -1,6 +1,4 @@
-﻿using Lykke.SettingsReader.Attributes;
-
-namespace MarginTrading.Backend.Core.Settings
+﻿namespace MarginTrading.Backend.Core.Settings
 {
     public class Db
     {
