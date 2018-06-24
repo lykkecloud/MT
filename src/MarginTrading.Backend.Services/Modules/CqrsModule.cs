@@ -91,6 +91,8 @@ namespace MarginTrading.Backend.Services.Modules
             
             contextRegistration.PublishingEvents(typeof(PositionClosedEvent)).With(EventsRoute);
 
+            contextRegistration.PublishingEvents(typeof(OrderExecutedEvent)).With(EventsRoute);
+
             return contextRegistration;
         }
     }

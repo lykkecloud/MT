@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Common.Log;
 using Lykke.Common;
+using MarginTrading.Backend.Contracts.Events;
 using MarginTrading.Backend.Core;
 using MarginTrading.Backend.Core.Exceptions;
+using MarginTrading.Backend.Core.Mappers;
 using MarginTrading.Backend.Core.MatchingEngines;
 using MarginTrading.Backend.Core.Orders;
 using MarginTrading.Backend.Core.Repositories;
@@ -13,6 +15,7 @@ using MarginTrading.Backend.Core.Trading;
 using MarginTrading.Backend.Services.AssetPairs;
 using MarginTrading.Backend.Services.Events;
 using MarginTrading.Backend.Services.Infrastructure;
+using MarginTrading.Backend.Services.Mappers;
 using MarginTrading.Common.Services;
 
 namespace MarginTrading.Backend.Services
@@ -41,6 +44,7 @@ namespace MarginTrading.Backend.Services
         private readonly IDateService _dateService;
         private readonly ICfdCalculatorService _cfdCalculatorService;
         private readonly IIdentityGenerator _identityGenerator;
+        private readonly ICqrsSender _cqrsSender;
 
         public TradingEngine(
             IEventChannel<MarginCallEventArgs> marginCallEventChannel,
@@ -63,7 +67,8 @@ namespace MarginTrading.Backend.Services
             ILog log,
             IDateService dateService,
             ICfdCalculatorService cfdCalculatorService,
-            IIdentityGenerator identityGenerator)
+            IIdentityGenerator identityGenerator,
+            ICqrsSender cqrsSender)
         {
             _marginCallEventChannel = marginCallEventChannel;
             _stopoutEventChannel = stopoutEventChannel;
@@ -87,6 +92,7 @@ namespace MarginTrading.Backend.Services
             _dateService = dateService;
             _cfdCalculatorService = cfdCalculatorService;
             _identityGenerator = identityGenerator;
+            _cqrsSender = cqrsSender;
         }
 
         public async Task<Order> PlaceOrderAsync(Order order)
@@ -233,6 +239,7 @@ namespace MarginTrading.Backend.Services
             {
                 order.Execute(_dateService.Now(), matchedOrders);
                 _orderExecutedEventChannel.SendEvent(this, new OrderExecutedEventArgs(order));
+                _cqrsSender.PublishEvent(new OrderExecutedEvent(Guid.NewGuid().ToString(), order.ConvertToContract()));
             }
 
             if (order.OrderType != OrderType.Market)
