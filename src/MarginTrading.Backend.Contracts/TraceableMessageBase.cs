@@ -1,11 +1,13 @@
 using System;
 using JetBrains.Annotations;
+using MessagePack;
 
 namespace MarginTrading.Backend.Contracts
 {
     /// <summary>
     /// Use this class as base on any message to enable traceability
     /// </summary>
+    [MessagePackObject]
     public class TraceableMessageBase
     {
         /// <summary>
@@ -14,7 +16,8 @@ namespace MarginTrading.Backend.Contracts
         /// identifier should be assigned so that that instance of the message can be tracked.
         /// </summary>
         [NotNull]
-        public string Id { get; private set; }
+        [Key(0)]
+        public string Id { get; }
          
         /// <summary>
         /// The correlation identifier.
@@ -23,7 +26,8 @@ namespace MarginTrading.Backend.Contracts
         /// If there is no inbound identifier then one should be created eg. on the service layer boundary (API).  
         /// </summary>
         [NotNull]
-        public string CorrelationId { get; private set; }
+        [Key(1)]
+        public string CorrelationId { get; }
         
         /// <summary>
         /// The causation identifier.
@@ -33,26 +37,19 @@ namespace MarginTrading.Backend.Contracts
         /// If there is no inbound message then the causationId should be left blank (read: null).
         /// </summary>
         [CanBeNull]
-        public string CausationId { get; private set; }
+        [Key(2)]
+        public string CausationId { get; }
         
         /// <summary>
         /// Event creation time stamp in UTC time.
         /// </summary>
-        public DateTime EventTimestamp { get; private set; }
+        [Key(3)]
+        public DateTime EventTimestamp { get; }
 
-        public TraceableMessageBase(TraceableMessageBase baseMessage)
-        {
-            //todo fill
-            Id = Guid.NewGuid().ToString("N");
-            CorrelationId = baseMessage.CorrelationId;
-            CausationId = baseMessage.Id;
-            EventTimestamp = _systemClock.;
-        }
-        
-        public TraceableMessageBase Create([NotNull] string id, [NotNull] string correlationId, [CanBeNull] string causationId,
+        public TraceableMessageBase([NotNull] string correlationId, [CanBeNull] string causationId,
             DateTime eventTimestamp)
         {
-            Id = id ?? throw new ArgumentNullException(nameof(id));
+            Id = Guid.NewGuid().ToString("N");
             CorrelationId = correlationId ?? throw new ArgumentNullException(nameof(correlationId));
             CausationId = causationId;
             EventTimestamp = eventTimestamp;

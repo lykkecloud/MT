@@ -10,14 +10,12 @@ namespace MarginTrading.Backend.Contracts.Events
         
         public OrderHistoryTypeContract Type { get; }
 
-        public OrderHistoryEvent(TraceableMessageBase baseMessage, OrderContract orderContract,
-            OrderHistoryTypeContract type, DateTime time) 
-            : base(baseMessage)
+        public OrderHistoryEvent([NotNull] string correlationId, [CanBeNull] string causationId, 
+            DateTime eventTimestamp, OrderContract orderContract, OrderHistoryTypeContract type) 
+            : base(correlationId, causationId, eventTimestamp)
         {
-        }
-
-        public OrderHistoryEvent([NotNull] string id, [NotNull] string correlationId, [CanBeNull] string causationId, DateTime eventTimestamp) : base(id, correlationId, causationId, eventTimestamp)
-        {
+            OrderSnapshot = orderContract;
+            Type = type;
         }
     }
 }
