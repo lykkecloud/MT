@@ -47,10 +47,15 @@ namespace MarginTrading.Backend.Contracts
         public DateTime EventTimestamp { get; }
 
         public TraceableMessageBase([NotNull] string correlationId, [CanBeNull] string causationId,
+            DateTime eventTimestamp) : this (Guid.NewGuid().ToString("N"), correlationId, causationId, eventTimestamp)
+        {
+        }
+        
+        public TraceableMessageBase([NotNull] string id, [NotNull] string correlationId, [CanBeNull] string causationId,
             DateTime eventTimestamp)
         {
-            Id = Guid.NewGuid().ToString("N");
-            CorrelationId = correlationId ?? throw new ArgumentNullException(nameof(correlationId));
+            Id = id;
+            CorrelationId = correlationId;
             CausationId = causationId;
             EventTimestamp = eventTimestamp;
         }
