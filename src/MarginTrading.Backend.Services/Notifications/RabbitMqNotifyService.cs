@@ -39,7 +39,7 @@ namespace MarginTrading.Backend.Services.Notifications
                 correlationId: Guid.NewGuid().ToString("N"),
                 causationId: null,
                 eventTimestamp: _dateService.Now(),
-                orderContract: order.ConvertToContract(),
+                orderSnapshot: order.ConvertToContract(),
                 type: orderUpdateType.ToType<OrderHistoryTypeContract>());
             
             return TryProduceMessageAsync(_settings.RabbitMqQueues.OrderHistory.ExchangeName, historyEvent);

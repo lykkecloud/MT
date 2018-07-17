@@ -11,10 +11,10 @@ namespace MarginTrading.Backend.Contracts.Events
         public OrderHistoryTypeContract Type { get; }
 
         public OrderHistoryEvent([NotNull] string correlationId, [CanBeNull] string causationId, 
-            DateTime eventTimestamp, OrderContract orderContract, OrderHistoryTypeContract type) 
+            DateTime eventTimestamp, OrderContract orderSnapshot, OrderHistoryTypeContract type) 
             : base(correlationId, causationId, eventTimestamp)
         {
-            OrderSnapshot = orderContract;
+            OrderSnapshot = orderSnapshot;
             Type = type;
         }
     }
