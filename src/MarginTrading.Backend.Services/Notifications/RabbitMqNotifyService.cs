@@ -35,12 +35,12 @@ namespace MarginTrading.Backend.Services.Notifications
 
         public Task OrderHistory(Order order, OrderUpdateType orderUpdateType)
         {
-            var historyEvent = new OrderHistoryEvent
-            {
-                OrderSnapshot = order.ConvertToContract(),
-                Timestamp = _dateService.Now(),
-                Type = orderUpdateType.ToType<OrderHistoryTypeContract>()
-            };
+            var historyEvent = new OrderHistoryEvent(
+                correlationId: Guid.NewGuid().ToString("N"),
+                causationId: null,
+                eventTimestamp: _dateService.Now(),
+                orderSnapshot: order.ConvertToContract(),
+                type: orderUpdateType.ToType<OrderHistoryTypeContract>());
             
             return TryProduceMessageAsync(_settings.RabbitMqQueues.OrderHistory.ExchangeName, historyEvent);
         }
