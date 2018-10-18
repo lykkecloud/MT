@@ -168,6 +168,7 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                         PositionIds = positions.Select(x => x.Id).ToList(),
                         ExternalProviderId = externalProviderId,
                         AccountId = command.AccountId,
+                        CausationOperationId = command.CausationOperationId
                     }
                 ));
 
@@ -293,12 +294,12 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
 
             if (executionInfo != null)
             {
-                if (executionInfo.Data.State >= SpecialLiquidationOperationState.PriceRequested)
+                if (executionInfo.Data.State > SpecialLiquidationOperationState.PriceRequested)
                 {
                     return CommandHandlingResult.Ok();
                 }
                 
-                if (_dateService.Now() > command.CreationTime.AddSeconds(command.TimeoutSeconds))
+                if (_dateService.Now() >= command.CreationTime.AddSeconds(command.TimeoutSeconds))
                 {
                     if (executionInfo.Data.SwitchState(SpecialLiquidationOperationState.PriceRequested,
                         SpecialLiquidationOperationState.Failed))
