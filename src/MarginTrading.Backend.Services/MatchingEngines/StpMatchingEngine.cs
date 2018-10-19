@@ -91,7 +91,7 @@ namespace MarginTrading.Backend.Services.MatchingEngines
                         dateTime: _dateService.Now(),
                         exchangeName: sourcePrice.source,
                         instrument: externalAssetPair,
-                        price: (double?)sourcePrice.price,
+                        price: targetPrice,
                         orderId: order.Id,
                         modality: modality.ToType<TradeRequestModality>());
 

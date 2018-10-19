@@ -511,7 +511,7 @@ namespace MarginTrading.Backend.Services
                 originator, 0, 0, OrderStatus.Placed, additionalInfo, correlationId);
             
             _orderPlacedEventChannel.SendEvent(this, new OrderPlacedEventArgs(order));
-                
+
             order = await ExecuteOrderByMatchingEngineAsync(order, me, true, modality);
             
             if (order.Status != OrderStatus.Executed && order.Status != OrderStatus.ExecutionStarted)
