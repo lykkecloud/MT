@@ -1,9 +1,19 @@
 # MarginTrading.Backend, MarginTrading.AccountMarginEventsBroker #
 
-Margin trading core API. Broker to pass margin and liquidation events from message queue to storage.
-Below is the API description.
+Margin trading core. Responsible for trading logic.
 
-## How to use in prod env? ##
+It consists of 2 applications: 
+
+### MarginTrading.Backend API 
+Stateful app - it stores caches in-memory. Single instance only is allowed. It obtains trading commands via API, 
+generate events via CQRS and plain RabbitMq exchanges. 
+May work with 2 types of storage: MSSQL and Azure (some refactorings needed). 
+The app dumps cache data to the blob. 
+
+### MarginTrading.AccountMarginEventsBroker
+Broker to pass margin and liquidation events from message queue to storage.
+
+## How to use MarginTrading.Backend API in prod env? ##
 
 1. Pull "mt-trading-core" docker image with a corresponding tag.
 2. Configure environment variables according to "Environment variables" section.
@@ -18,6 +28,7 @@ Below is the API description.
         "Password": "<certificate password>"
       }
     }
+  }
 }
 ```
 4. Initialize all dependencies.
@@ -32,8 +43,12 @@ Below is the API description.
 5. Run.
 
 ### Dependencies ###
-
-TBD
+* Settings Service must be up and running in order to read assets, asset pairs, trading schedule, trading instruments, 
+schedule settings, trading routes.
+* Account management must be up and running in order to initialize account state.
+* Gavel or other ExchangeConnectorService implementation must be up and running in order to execute orders.
+* Azure storage or MSSQL Server db instance must be available depending on settings.
+* RabbitMQ must be up and running. 
 
 ### Configuration ###
 
