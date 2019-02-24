@@ -74,6 +74,8 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
         [UsedImplicitly]
         private async Task Handle(StartSpecialLiquidationInternalCommand command, IEventPublisher publisher)
         {
+            #region Validations
+            
             if (!_marginTradingSettings.SpecialLiquidation.Enabled)
             {
                 publisher.PublishEvent(new SpecialLiquidationFailedEvent
@@ -152,8 +154,9 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                 
                 return;
             }
+            
+            #endregion Validations
 
-            //ensure idempotency
             var executionInfo = await _operationExecutionInfoRepository.GetOrAddAsync(
                 operationName: SpecialLiquidationSaga.OperationName,
                 operationId: command.OperationId,
@@ -172,7 +175,7 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                     }
                 ));
 
-            if (executionInfo.Data.SwitchState(SpecialLiquidationOperationState.Initiated, SpecialLiquidationOperationState.Started))
+            if (executionInfo.Data.State == SpecialLiquidationOperationState.Initiated)
             {
                 publisher.PublishEvent(new SpecialLiquidationStartedInternalEvent
                 {
@@ -180,16 +183,14 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                     CreationTime = _dateService.Now(),
                     Instrument = positions.FirstOrDefault()?.AssetPairId,
                 });
-                
-                _chaosKitty.Meow(command.OperationId);
-
-                await _operationExecutionInfoRepository.Save(executionInfo);
             }
         }
         
         [UsedImplicitly]
         private async Task Handle(StartSpecialLiquidationCommand command, IEventPublisher publisher)
-        {   
+        {
+            #region Validations
+            
             if (!_marginTradingSettings.SpecialLiquidation.Enabled)
             {
                 publisher.PublishEvent(new SpecialLiquidationFailedEvent
@@ -252,7 +253,8 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                 return;
             }
             
-            //ensure idempotency
+            #endregion Validations
+            
             var executionInfo = await _operationExecutionInfoRepository.GetOrAddAsync(
                 operationName: SpecialLiquidationSaga.OperationName,
                 operationId: command.OperationId,
@@ -269,7 +271,7 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                     }
                 ));
 
-            if (executionInfo.Data.SwitchState(SpecialLiquidationOperationState.Initiated, SpecialLiquidationOperationState.Started))
+            if (executionInfo.Data.State == SpecialLiquidationOperationState.Initiated)
             {
                 publisher.PublishEvent(new SpecialLiquidationStartedInternalEvent
                 {
@@ -277,10 +279,6 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                     CreationTime = _dateService.Now(),
                     Instrument = command.Instrument,
                 });
-                
-                _chaosKitty.Meow(command.OperationId);
-
-                await _operationExecutionInfoRepository.Save(executionInfo);
             }
         }
 
@@ -301,21 +299,13 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                 
                 if (_dateService.Now() >= command.CreationTime.AddSeconds(command.TimeoutSeconds))
                 {
-                    if (executionInfo.Data.SwitchState(SpecialLiquidationOperationState.PriceRequested,
-                        SpecialLiquidationOperationState.Failed))
+                    publisher.PublishEvent(new SpecialLiquidationFailedEvent
                     {
-                        publisher.PublishEvent(new SpecialLiquidationFailedEvent
-                        {
-                            OperationId = command.OperationId,
-                            CreationTime = _dateService.Now(),
-                            Reason = $"Timeout of {command.TimeoutSeconds} seconds from {command.CreationTime:s}",
-                        });
-                
-                        _chaosKitty.Meow(command.OperationId);
-
-                        await _operationExecutionInfoRepository.Save(executionInfo);
-                    }
-
+                        OperationId = command.OperationId,
+                        CreationTime = _dateService.Now(),
+                        Reason = $"Timeout of {command.TimeoutSeconds} seconds from {command.CreationTime:s}",
+                    });
+            
                     return CommandHandlingResult.Ok();
                 }
             }
@@ -333,13 +323,12 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                 operationName: SpecialLiquidationSaga.OperationName,
                 id: command.OperationId);
 
-            if (executionInfo == null)
+            if (executionInfo?.Data == null)
             {
                 return;
             }
 
-            if (executionInfo.Data.SwitchState(SpecialLiquidationOperationState.PriceReceived,
-                SpecialLiquidationOperationState.ExternalOrderExecuted))
+            if (executionInfo.Data.State == SpecialLiquidationOperationState.PriceReceived)
             {
                 var order = new OrderModel(
                     tradeType: command.Volume > 0 ? TradeType.Buy : TradeType.Sell,
@@ -378,10 +367,6 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                         $"Failed to execute the order: {order.ToJson()}",
                         exception);
                 }
-                
-                //todo think what if meow happens here
-
-                await _operationExecutionInfoRepository.Save(executionInfo);
             }
         }
 
@@ -392,13 +377,12 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                 operationName: SpecialLiquidationSaga.OperationName,
                 id: command.OperationId);
 
-            if (executionInfo == null)
+            if (executionInfo?.Data == null)
             {
                 return;
             }
 
-            if (executionInfo.Data.SwitchState(SpecialLiquidationOperationState.InternalOrderExecutionStarted,
-                SpecialLiquidationOperationState.InternalOrdersExecuted))
+            if (executionInfo.Data.State == SpecialLiquidationOperationState.InternalOrderExecutionStarted)
             {
                 try
                 {
@@ -427,10 +411,6 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                         Reason = ex.Message,
                     });
                 }
-                
-                _chaosKitty.Meow(command.OperationId);
-
-                await _operationExecutionInfoRepository.Save(executionInfo);
             }
         }
 
@@ -441,13 +421,12 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                 operationName: SpecialLiquidationSaga.OperationName,
                 id: command.OperationId);
 
-            if (executionInfo == null)
+            if (executionInfo?.Data == null)
             {
                 return;
             }
             
-            if (executionInfo.Data.SwitchState(executionInfo.Data.State,//from any state
-                SpecialLiquidationOperationState.OnTheWayToFail))
+            if (executionInfo.Data.State < SpecialLiquidationOperationState.Failed)//from any state
             {
                 publisher.PublishEvent(new SpecialLiquidationFailedEvent
                 {
@@ -455,10 +434,6 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                     CreationTime = _dateService.Now(),
                     Reason = command.Reason,
                 });
-                
-                _chaosKitty.Meow(command.OperationId);
-
-                await _operationExecutionInfoRepository.Save(executionInfo);
             }
         }
 
