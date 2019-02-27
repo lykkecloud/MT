@@ -119,17 +119,6 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                 return;
             }
 
-            if (!TryGetExchangeNameFromPositions(positions, out var externalProviderId))
-            {
-                publisher.PublishEvent(new SpecialLiquidationFailedEvent
-                {
-                    OperationId = command.OperationId,
-                    CreationTime = _dateService.Now(),
-                    Reason = "All requested positions must be open on the same external exchange",
-                });
-                return;
-            }
-
             if (!positions.Any())
             {
                 publisher.PublishEvent(new SpecialLiquidationFailedEvent
@@ -139,6 +128,17 @@ namespace MarginTrading.Backend.Services.Workflow.SpecialLiquidation
                     Reason = "No positions to liquidate",
                 });
                 
+                return;
+            }
+
+            if (!TryGetExchangeNameFromPositions(positions, out var externalProviderId))
+            {
+                publisher.PublishEvent(new SpecialLiquidationFailedEvent
+                {
+                    OperationId = command.OperationId,
+                    CreationTime = _dateService.Now(),
+                    Reason = "All requested positions must be open on the same external exchange",
+                });
                 return;
             }
 
