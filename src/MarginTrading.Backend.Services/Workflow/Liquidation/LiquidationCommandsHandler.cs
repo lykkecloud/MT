@@ -7,6 +7,7 @@ using Common.Log;
 using JetBrains.Annotations;
 using Lykke.Common.Chaos;
 using Lykke.Cqrs;
+using MarginTrading.Backend.Contracts.Account;
 using MarginTrading.Backend.Contracts.Positions;
 using MarginTrading.Backend.Contracts.Workflow.Liquidation;
 using MarginTrading.Backend.Contracts.Workflow.Liquidation.Events;
@@ -228,6 +229,8 @@ namespace MarginTrading.Backend.Services.Workflow.Liquidation
                 $"{nameof(FinishLiquidationInternalCommand)}:" +
                 $"Publish_LiquidationFinishedInternalEvent:" +
                 $"{command.OperationId}");
+
+            var account = _accountsCache.Get(executionInfo.Data.AccountId);
             
             publisher.PublishEvent(new LiquidationFinishedEvent
             {
@@ -241,7 +244,8 @@ namespace MarginTrading.Backend.Services.Workflow.Liquidation
                 ProcessedPositionIds = command.ProcessedPositionIds,
                 LiquidatedPositionIds = command.LiquidatedPositionIds,
                 OpenPositionsRemainingOnAccount = _ordersCache.Positions.GetPositionsByAccountIds(executionInfo.Data.AccountId).Count,
-                CurrentTotalCapital = _accountsCache.Get(executionInfo.Data.AccountId).GetTotalCapital(),
+                CurrentTotalCapital = account.GetTotalCapital(),
+                AccountLevel = account.GetAccountLevel().ToType<AccountLevelContract>(),
             });
             
             _liquidationEndEventChannel.SendEvent(this, new LiquidationEndEventArgs
