@@ -72,7 +72,7 @@
     <PackageReference Include="System.ComponentModel.TypeConverter" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.Extensions.SecretManager.Tools" Version="2.1.1" />
+    <!--<DotNetCliToolReference Include="Microsoft.Extensions.SecretManager.Tools" Version="2.1.1" />-->
   </ItemGroup>
   <Target Name="PrepublishScript" BeforeTargets="PrepareForPublish">
     <ItemGroup>

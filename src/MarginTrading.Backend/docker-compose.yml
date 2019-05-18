@@ -16,7 +16,7 @@ services:
           - margintrading
 
   rabbitmq:
-     image: rabbitmq:3-management
+     image: rabbitmq:3.8-rc-management
      hostname: mtrabbit
      volumes:
        - ./definitions.json:/etc/rabbitmq/definitions.json:ro

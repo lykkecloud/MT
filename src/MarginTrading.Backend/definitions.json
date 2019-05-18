@@ -21,9 +21,49 @@
     }
   ],
   "parameters": [],
-  "policies": [],
-  "exchanges": [],
-  "queues": [],
-
-  "bindings": []
+  "policies": [
+    {
+      "vhost": "/",
+      "name": "validateDeliveryAndLatency",
+      "pattern": "orderbooks",
+      "apply-to": "queues",
+      "definition": {
+        "dead-letter-exchange": "failed.exchange",
+        "dead-letter-routing-key": "book",
+        "delivery-limit": 1,
+        "max-length": 100,
+        "message-ttl": 100
+      },
+      "priority": 9
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "failed.exchange",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "failed.books",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "failed.exchange",
+      "vhost": "/",
+      "destination": "failed.books",
+      "destination_type": "queue",
+      "routing_key": "book",
+      "arguments": {}
+    }
+  ]
 }
