@@ -33,6 +33,7 @@ using MarginTrading.SettingsService.Contracts.AssetPair;
 using MarginTrading.Backend.Services.Workflow.SpecialLiquidation;
 using MarginTrading.Backend.Services.Workflow.SpecialLiquidation.Commands;
 using MarginTrading.Backend.Services.Workflow.SpecialLiquidation.Events;
+using Lykke.Messaging.Serialization;
 
 namespace MarginTrading.Backend.Services.Modules
 {
@@ -88,7 +89,7 @@ namespace MarginTrading.Backend.Services.Modules
         private CqrsEngine CreateEngine(IComponentContext ctx, IMessagingEngine messagingEngine)
         {
             var rabbitMqConventionEndpointResolver =
-                new RabbitMqConventionEndpointResolver("RabbitMq", "messagepack",
+                new RabbitMqConventionEndpointResolver("RabbitMq", SerializationFormat.MessagePack,
                     environment: _settings.EnvironmentName);
 
             var registrations = new List<IRegistration>

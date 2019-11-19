@@ -47,12 +47,11 @@ namespace MarginTrading.BrokerBase
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            var loggerFactory = new LoggerFactory()
-                .AddConsole(LogLevel.Error)
-                .AddDebug(LogLevel.Warning);
-
-            services.AddSingleton(loggerFactory);
-            services.AddLogging();
+            services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddConsole(opts => opts.LogToStandardErrorThreshold = LogLevel.Error);
+                loggingBuilder.AddDebug();
+            });
             services.AddSingleton(Configuration);
             services.AddMvc();
 

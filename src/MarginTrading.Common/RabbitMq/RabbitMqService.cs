@@ -10,7 +10,6 @@ using AzureStorage.Blob;
 using Common;
 using Common.Log;
 using JetBrains.Annotations;
-using Lykke.RabbitMq.Azure;
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Subscriber;

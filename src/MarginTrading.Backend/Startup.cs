@@ -76,19 +76,18 @@ namespace MarginTrading.Backend
 
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            var loggerFactory = new LoggerFactory()
-                .AddConsole(LogLevel.Error)
-                .AddDebug(LogLevel.Error);
-
-            services.AddSingleton(loggerFactory);
-            services.AddLogging();
-            services.AddSingleton(Configuration);
-            services.AddMvc()
-            .AddJsonOptions(options =>
+            services.AddLogging(loggingBuilder =>
             {
-                options.SerializerSettings.ContractResolver = new DefaultContractResolver();
-                options.SerializerSettings.Converters.Add(new StringEnumConverter());
+                loggingBuilder.AddConsole(opts => opts.LogToStandardErrorThreshold = LogLevel.Error);
+                loggingBuilder.AddDebug();
             });
+            services.AddSingleton(Configuration);
+            services.AddMvc(opts => opts.EnableEndpointRouting = false)
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.ContractResolver = new DefaultContractResolver();
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
+                });
             services.AddScoped<MarginTradingEnabledFilter>();
             services.AddAuthentication(KeyAuthOptions.AuthenticationScheme)
                 .AddScheme<KeyAuthOptions, KeyAuthHandler>(KeyAuthOptions.AuthenticationScheme, "", options => { });
