@@ -239,11 +239,9 @@ namespace MarginTrading.Backend.Services.EventsConsumers
             {
                 var sign = position.Volume > 0 ? 1 : -1;
 
-                var accountBaseAssetAccuracy = _assetsCache.GetAssetAccuracy(position.AccountAssetId);
-
-                var fpl = Math.Round((dealOrder.ExecutionPrice.Value - position.OpenPrice) *
-                                     dealOrder.FxRate * dealVolume.Value * sign, accountBaseAssetAccuracy);
-                var balanceDelta = fpl - Math.Round(chargedPnl, accountBaseAssetAccuracy);
+                var fpl = (dealOrder.ExecutionPrice.Value - position.OpenPrice) *
+                                     dealOrder.FxRate * dealVolume.Value * sign;
+                var balanceDelta = fpl - chargedPnl;
                 
                 deal = new DealContract
                 {
