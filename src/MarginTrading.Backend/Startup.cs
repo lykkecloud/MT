@@ -244,19 +244,21 @@ namespace MarginTrading.Backend
 
             if (settings.CurrentValue.UseSerilog)
             {
-                LogLocator.RequestsLog = LogLocator.CommonLog = new SerilogLogger(typeof(Startup).Assembly, configuration);
+                LogLocator.RequestsLog = LogLocator.CommonLog = LogLocator.WebHostLog = new SerilogLogger(typeof(Startup).Assembly, configuration);
             }
             else if (settings.CurrentValue.Db.StorageMode == StorageMode.SqlServer)
             {
                 LogLocator.RequestsLog = new AggregateLogger(
                     new LogToSql(new SqlLogRepository(requestsLogName,
                         settings.CurrentValue.Db.LogsConnString)),
-                    new LogToConsole());
+                    consoleLogger);
 
                 LogLocator.CommonLog = new AggregateLogger(
                     new LogToSql(new SqlLogRepository(logName,
                         settings.CurrentValue.Db.LogsConnString)),
-                    new LogToConsole());
+                    consoleLogger);
+
+                LogLocator.WebHostLog = consoleLogger;
             }
             else if (settings.CurrentValue.Db.StorageMode == StorageMode.Azure)
             {
@@ -269,7 +271,7 @@ namespace MarginTrading.Backend
                 LogLocator.RequestsLog = services.UseLogToAzureStorage(settings.Nested(s => s.Db.LogsConnString),
                 slackService, requestsLogName, consoleLogger);
 
-                LogLocator.CommonLog = services.UseLogToAzureStorage(settings.Nested(s => s.Db.LogsConnString),
+                LogLocator.CommonLog = LogLocator.WebHostLog = services.UseLogToAzureStorage(settings.Nested(s => s.Db.LogsConnString),
                     slackService, logName, consoleLogger);
             }
 
@@ -282,7 +284,7 @@ namespace MarginTrading.Backend
             services.AddSingleton<ISlackNotificationsSender>(slackService);
             services.AddSingleton<IMtSlackNotificationsSender>(slackService);
 
-            services.AddSingleton<ILoggerFactory>(x => new WebHostLoggerFactory(LogLocator.CommonLog));
+            services.AddSingleton<ILoggerFactory>(x => new WebHostLoggerFactory(LogLocator.WebHostLog));
         }
 
         /// <summary>
