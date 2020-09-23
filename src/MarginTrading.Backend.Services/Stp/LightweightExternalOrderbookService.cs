@@ -22,7 +22,7 @@ using MarginTrading.Backend.Services.Events;
 using MarginTrading.Backend.Services.Infrastructure;
 using MarginTrading.Common.Helpers;
 using MarginTrading.Common.Services;
-using MarginTrading.SettingsService.Contracts.AssetPair;
+using MarginTrading.AssetService.Contracts.AssetPair;
 using MoreLinq;
 
 namespace MarginTrading.Backend.Services.Stp
@@ -219,7 +219,10 @@ namespace MarginTrading.Backend.Services.Stp
 
         private bool CheckZeroQuote(ExternalOrderBook orderbook, bool isEodOrderbook)
         {
-            var isOrderbookValid = orderbook.Asks[0].Volume != 0 && orderbook.Bids[0].Volume != 0;
+            // TODO: the code below supposes we have only one quote in orderbook
+            var hasZeroVolume = orderbook.Asks[0].Volume == 0 || orderbook.Bids[0].Volume == 0;
+            var hasZeroPrice = orderbook.Asks[0].Price == 0 || orderbook.Bids[0].Price == 0;
+            var isOrderbookValid = !hasZeroVolume && !hasZeroPrice;
             
             var assetPair = _assetPairsCache.GetAssetPairByIdOrDefault(orderbook.AssetPairId);
             if (assetPair == null)
@@ -233,7 +236,8 @@ namespace MarginTrading.Backend.Services.Stp
             
             if (!isOrderbookValid)
             {
-                if (!assetPair.IsSuspended)
+                // suspend instrument in case of zero volumes only
+                if (!assetPair.IsSuspended && hasZeroVolume)
                 {
                     assetPair.IsSuspended = true;//todo apply changes to trading engine
                     _cqrsSender.SendCommandToSettingsService(new SuspendAssetPairCommand

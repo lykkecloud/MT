@@ -16,14 +16,12 @@ using MarginTrading.Backend.Services.Assets;
 using MarginTrading.Backend.Services.Infrastructure;
 using MarginTrading.Backend.Services.MatchingEngines;
 using MarginTrading.Backend.Services.Notifications;
-using MarginTrading.Backend.Services.Stp;
 using MarginTrading.Backend.Services.TradingConditions;
 using MarginTrading.Common.RabbitMq;
 using MarginTrading.Common.Services;
 using MarginTrading.OrderbookAggregator.Contracts.Messages;
-using MarginTrading.SettingsService.Contracts.AssetPair;
-using MarginTrading.SettingsService.Contracts.Enums;
-using MarginTrading.SettingsService.Contracts.Messages;
+using MarginTrading.AssetService.Contracts.Enums;
+using MarginTrading.AssetService.Contracts.Messages;
 
 #pragma warning disable 1591
 
@@ -215,6 +213,12 @@ namespace MarginTrading.Backend
                 case SettingsTypeContract.Market:
                     break;
                 case SettingsTypeContract.ServiceMaintenance:
+                    break;
+                case SettingsTypeContract.OrderExecution:
+                    break;
+                case SettingsTypeContract.OvernightSwap:
+                    break;
+                case SettingsTypeContract.OnBehalf:
                     break;
                 default:
                     throw new NotImplementedException($"Type {message.SettingsType} is not supported");
