@@ -560,17 +560,8 @@ namespace MarginTrading.Backend.Services
 
             foreach (var order in pendingOrders)
             {
-                _log.WriteInfo(nameof(TradingEngine.ProcessExpiredOrders), new
+                if (order.Validity.HasValue && operationIntervalEnd.Date > order.Validity.Value.Date)
                 {
-                    order = order,
-                    endOfOperationINterval = operationIntervalEnd.Date
-                }.ToJson(), "Checking if order id expired");
-                
-                if (order.Validity.HasValue && operationIntervalEnd.Date >= order.Validity.Value.Date)
-                {
-                    _log.WriteInfo(nameof(TradingEngine.ProcessExpiredOrders), null,
-                        $"Order {order.Id} is expired, will remove it");
-                    
                     _ordersCache.Active.Remove(order);
                     order.Expire(now);
                     _orderCancelledEventChannel.SendEvent(
