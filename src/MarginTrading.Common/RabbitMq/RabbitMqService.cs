@@ -15,6 +15,7 @@ using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Subscriber;
 using Lykke.SettingsReader;
+using MarginTrading.Backend.Services.RabbitMq;
 using RabbitMQ.Client;
 
 namespace MarginTrading.Common.RabbitMq
@@ -132,6 +133,7 @@ namespace MarginTrading.Common.RabbitMq
                         .SetSerializer(serializer)
                         .SetLogger(_logger)
                         .SetConsole(_consoleWriter)
+                        .SetPublishStrategy(new FanoutPublishStrategyWithConfirms(s))
                         .Start();
                 });
             }
