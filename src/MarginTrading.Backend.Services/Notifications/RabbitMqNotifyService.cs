@@ -127,27 +127,23 @@ namespace MarginTrading.Backend.Services.Notifications
 
         private void RegisterPublishers(IRabbitMqService rabbitMqService)
         {
-            var publishExchanges = new List<string>
+            var selectedExchanges = new List<RabbitMqQueueInfo>
             {
-                _settings.RabbitMqQueues.OrderHistory.ExchangeName,
-                _settings.RabbitMqQueues.OrderbookPrices.ExchangeName,
-                _settings.RabbitMqQueues.AccountMarginEvents.ExchangeName,
-                _settings.RabbitMqQueues.AccountStats.ExchangeName,
-                _settings.RabbitMqQueues.Trades.ExchangeName,
-                _settings.RabbitMqQueues.PositionHistory.ExchangeName,
-                _settings.RabbitMqQueues.ExternalOrder.ExchangeName,
+                _settings.RabbitMqQueues.OrderHistory,
+                _settings.RabbitMqQueues.OrderbookPrices,
+                _settings.RabbitMqQueues.AccountMarginEvents,
+                _settings.RabbitMqQueues.AccountStats,
+                _settings.RabbitMqQueues.Trades,
+                _settings.RabbitMqQueues.PositionHistory,
+                _settings.RabbitMqQueues.ExternalOrder,
             };
 
             var bytesSerializer = new BytesStringSerializer();
 
-            foreach (var exchangeName in publishExchanges)
+            foreach (var publisherConfiguration in selectedExchanges)
             {
-                var settings = new RabbitMqSettings
-                {
-                    ConnectionString = _settings.MtRabbitMqConnString, ExchangeName
-                        = exchangeName
-                };
-                _publishers[exchangeName] = rabbitMqService.GetProducer(settings, bytesSerializer);
+                var mappedConfiguration  = publisherConfiguration.ToDomain(_settings.MtRabbitMqConnString);
+                _publishers[publisherConfiguration.ExchangeName] = rabbitMqService.GetProducer(mappedConfiguration, bytesSerializer);
             }
         }
     }
