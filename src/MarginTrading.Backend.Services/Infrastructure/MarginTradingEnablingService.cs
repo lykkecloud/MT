@@ -54,11 +54,7 @@ namespace MarginTrading.Backend.Services
         public void Start()
         {
             _eventsPublisher = _rabbitMqService.GetProducer(
-                new RabbitMqSettings
-                {
-                    ConnectionString = _marginSettings.MtRabbitMqConnString,
-                    ExchangeName = _marginSettings.RabbitMqQueues.MarginTradingEnabledChanged.ExchangeName
-                },
+                _marginSettings.RabbitMqQueues.MarginTradingEnabledChanged.ToDomain(_marginSettings.MtRabbitMqConnString),
                 _rabbitMqService.GetJsonSerializer<MarginTradingEnabledChangedMessage>());
         }
     }
