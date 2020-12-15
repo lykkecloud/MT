@@ -6,11 +6,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AzureStorage.Blob;
 using Common;
 using Common.Log;
 using JetBrains.Annotations;
-using Lykke.RabbitMq.Azure;
 using Lykke.RabbitMqBroker;
 using Lykke.RabbitMqBroker.Publisher;
 using Lykke.RabbitMqBroker.Subscriber;
@@ -111,6 +109,7 @@ namespace MarginTrading.Common.RabbitMq
                 ConnectionString = settings.ConnectionString,
                 ExchangeName = settings.ExchangeName,
                 IsDurable = settings.IsDurable,
+                PublisherConfirmationTimeout = settings.PublisherConfirmationTimeout
             };
 
             return (IMessageProducer<TMessage>) _producers.GetOrAdd(subscriptionSettings, CreateProducer).Value;
@@ -128,11 +127,17 @@ namespace MarginTrading.Common.RabbitMq
                     else
                         publisher.DisableInMemoryQueuePersistence();
 
-                    return publisher
+                    publisher = publisher
                         .SetSerializer(serializer)
                         .SetLogger(_logger)
-                        .SetConsole(_consoleWriter)
-                        .Start();
+                        .SetConsole(_consoleWriter);
+
+                    if (s.PublisherConfirmationTimeout.HasValue && s.PublisherConfirmationTimeout != TimeSpan.Zero)
+                    {
+                        publisher = publisher.SetPublishStrategy(new FanoutPublishStrategyWithConfirmations(s));
+                    }
+                    
+                    return publisher.Start();
                 });
             }
         }

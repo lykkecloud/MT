@@ -123,12 +123,9 @@ namespace MarginTrading.Backend
                         "RisksRabbitMqSettings is not configured");
                 }
 
-                var settingsChanged = new RabbitMqSettings
-                {
-                    ConnectionString = _marginSettings.MtRabbitMqConnString,
-                    ExchangeName = _marginSettings.RabbitMqQueues.SettingsChanged.ExchangeName
-                };
-
+                var settingsChanged =
+                    _marginSettings.RabbitMqQueues.SettingsChanged.ToDomain(_marginSettings.MtRabbitMqConnString);
+                    
                 _rabbitMqService.Subscribe(settingsChanged,
                     true, HandleChangeSettingsMessage,
                     _rabbitMqService.GetJsonDeserializer<SettingsChangedEvent>());
