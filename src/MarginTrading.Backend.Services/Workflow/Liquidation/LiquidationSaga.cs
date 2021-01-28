@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Common;
 using Common.Log;
@@ -279,9 +280,10 @@ namespace MarginTrading.Backend.Services.Workflow.Liquidation
             var positionsOnAccount = _ordersCache.Positions.GetPositionsByAccountIds(data.AccountId);
             if (data.LiquidationType == LiquidationType.Forced)
             {
+                _log.Wait("determine positions for liqudation");
                 positionsOnAccount = positionsOnAccount.Where(p => p.OpenDate < data.StartedAt).ToList();
             }
-
+            
             //group positions and take only not processed, filtered and with open market
             var positionGroups = positionsOnAccount
                 .Where(p => !data.ProcessedPositionIds.Contains(p.Id) &&
@@ -359,15 +361,40 @@ namespace MarginTrading.Backend.Services.Workflow.Liquidation
             }
             
             var accountLevel = account.GetAccountLevel();
-
             if (data.LiquidationType == LiquidationType.Forced)
             {
+                _log.Wait("determine if liquidation should be finished or not");
+
                 if (!_ordersCache.Positions.GetPositionsByAccountIds(data.AccountId)
                     .Any(x => (string.IsNullOrWhiteSpace(data.AssetPairId) || x.AssetPairId == data.AssetPairId)
                               &&  x.OpenDate < data.StartedAt
                               && (data.Direction == null || x.Direction == data.Direction)))
                 {
-                    FinishWithReason("All positions are closed");
+                    var stillOpenPositions = _ordersCache.Positions.GetPositionsByAccountIds(data.AccountId)
+                        .Where(x => (string.IsNullOrWhiteSpace(data.AssetPairId) || x.AssetPairId == data.AssetPairId)
+                                  && x.OpenDate > data.StartedAt //change 
+                                  && (data.Direction == null || x.Direction == data.Direction))
+                        .ToList();
+                    
+                    if (stillOpenPositions.Any())
+                    {
+                        var posData = stillOpenPositions.Select(x => new
+                        {
+                            x.OpenDate,
+                            x.AssetPairId,
+                            x.Direction, x.Id
+                        });
+
+                        _log.WriteWarningAsync("Avolkov", "WTF",
+                            $"Found open position after liquidation started at {data.StartedAt} " +
+                            $"for account {data.AccountId}. Positions:  {posData.ToJson()}");
+                        FinishWithReason("All positions before are closed");
+                    }
+                    else
+                    {
+
+                        FinishWithReason("All positions are closed");
+                    }
                 }
                 else
                 {
@@ -389,5 +416,16 @@ namespace MarginTrading.Backend.Services.Workflow.Liquidation
         
         #endregion
         
+    }
+}
+
+
+static class AvolkovScheduler
+{
+    public static void Wait(this ILog log,  string process,  int seconds = 60)
+    {
+        log.WriteWarningAsync($"Avolkov.{nameof(AvolkovScheduler)}.{nameof(Wait)}", process,
+            $"Waiting for {seconds} before   {process}");
+        Thread.Sleep(TimeSpan.FromSeconds(60));
     }
 }

@@ -267,6 +267,7 @@ namespace MarginTrading.Backend.Services.Workflow.Liquidation
         [UsedImplicitly]
         public async Task Handle(LiquidatePositionsInternalCommand command, IEventPublisher publisher)
         {
+            _log.Wait("liquidations positions");
             var executionInfo = await _operationExecutionInfoRepository.GetAsync<LiquidationOperationData>(
                 operationName: LiquidationSaga.OperationName,
                 id: command.OperationId);
