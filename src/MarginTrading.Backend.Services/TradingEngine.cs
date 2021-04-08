@@ -904,6 +904,8 @@ namespace MarginTrading.Backend.Services
             {
                 try
                 {
+                    ValidationHelper.ValidateAccountId(positionGroup, accountId);
+
                     var closeResult = await ClosePositionsAsync(positionGroup, true);
 
                     foreach (var position in positionGroup.Positions)
