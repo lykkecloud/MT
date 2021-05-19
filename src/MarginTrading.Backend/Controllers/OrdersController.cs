@@ -218,7 +218,15 @@ namespace MarginTrading.Backend.Controllers
 
             if (placedOrder.Status == OrderStatus.Rejected)
             {
-                throw new Exception($"Order {placedOrder.Id} from account {placedOrder.AccountId} for instrument {placedOrder.AssetPairId} is rejected: {placedOrder.RejectReason} ({placedOrder.RejectReasonText}). Comment: {placedOrder.Comment}.");
+                var message = $"Order {placedOrder.Id} from account {placedOrder.AccountId} for instrument {placedOrder.AssetPairId} is rejected: {placedOrder.RejectReason} ({placedOrder.RejectReasonText}). Comment: {placedOrder.Comment}.";
+                switch (placedOrder.RejectReason)
+                {
+                    case OrderRejectReason.NotEnoughBalance:
+                    case OrderRejectReason.InvalidInstrument:
+                        throw new ValidateOrderFunctionalException(placedOrder.RejectReason, placedOrder.RejectReasonText, message);
+                    default:
+                        throw new Exception(message);
+                }
             }
 
             foreach (var order in relatedOrders)
@@ -372,7 +380,7 @@ namespace MarginTrading.Backend.Controllers
                 await _tradingEngine.ChangeOrderAsync(order.Id, request.Price, request.Validity, originator,
                     request.AdditionalInfo, correlationId, request.ForceOpen);
             }
-            catch (ValidateOrderException ex)
+            catch (ValidateOrderException ex) when (ex is not ValidateOrderFunctionalException)
             {
                 throw new InvalidOperationException(ex.Message);
             }
