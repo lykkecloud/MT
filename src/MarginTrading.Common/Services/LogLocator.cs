@@ -9,5 +9,6 @@ namespace MarginTrading.Common.Services
     {
         public static ILog CommonLog { get; set; }
         public static ILog RequestsLog { get; set; }
+        public static ILog WebHostLog { get; set; }
     }
 }
