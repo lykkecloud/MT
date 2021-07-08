@@ -25,6 +25,16 @@ namespace MarginTrading.Backend.Contracts
             [Query, CanBeNull] string correlationId = null);
         
         /// <summary>
+        /// Save snapshot of orders, positions, account stats, best fx prices, best trading prices for current moment.
+        /// Throws an error in case if trading is not stopped.
+        /// FOR TEST PURPOSES ONLY, SKIPS SOME CHECKS.
+        /// </summary>
+        /// <returns>Snapshot statistics.</returns>
+        [Post("/api/service/make-trading-data-snapshot")]
+        Task<string> MakeTradingDataSnapshotTest([Query] DateTime tradingDay, 
+            [Query, CanBeNull] string correlationId = null);
+        
+        /// <summary>
         /// Get current state of overnight margin parameter.
         /// </summary>
         [Get("/api/service/current-overnight-margin-parameter")]

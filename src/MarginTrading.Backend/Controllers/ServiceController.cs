@@ -54,6 +54,28 @@ namespace MarginTrading.Backend.Controllers
             
             return await _snapshotService.MakeTradingDataSnapshot(tradingDay, correlationId);
         }
+        
+        /// <summary>
+        /// Save snapshot of orders, positions, account stats, best fx prices, best trading prices for current moment.
+        /// Throws an error in case if trading is not stopped
+        /// FOR TEST PURPOSES ONLY, SKIPS SOME CHECKS.
+        /// </summary>
+        /// <returns>Snapshot statistics.</returns>
+        [HttpPost("make-trading-data-snapshot-test")]
+        public async Task<string> MakeTradingDataSnapshotTest([FromQuery] DateTime tradingDay, [FromQuery] string correlationId = null)
+        {
+            if (tradingDay == default)
+            {
+                throw new Exception($"{nameof(tradingDay)} must be set");
+            }
+            
+            if (string.IsNullOrWhiteSpace(correlationId))
+            {
+                correlationId = _identityGenerator.GenerateGuid();
+            }
+            
+            return await _snapshotService.MakeTradingDataSnapshot(tradingDay, correlationId);
+        }
 
         /// <summary>
         /// Get current state of overnight margin parameter.
