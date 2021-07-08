@@ -74,7 +74,7 @@ namespace MarginTrading.Backend.Controllers
                 correlationId = _identityGenerator.GenerateGuid();
             }
             
-            return await _snapshotService.MakeTradingDataSnapshot(tradingDay, correlationId);
+            return await _snapshotService.MakeTradingDataSnapshotTest(tradingDay, correlationId);
         }
 
         /// <summary>
