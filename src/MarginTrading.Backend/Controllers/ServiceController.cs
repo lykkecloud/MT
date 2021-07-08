@@ -62,7 +62,7 @@ namespace MarginTrading.Backend.Controllers
         /// </summary>
         /// <returns>Snapshot statistics.</returns>
         [HttpPost("make-trading-data-snapshot-test")]
-        public async Task<string> MakeTradingDataSnapshotTest([FromQuery] DateTime tradingDay, [FromQuery] string correlationId = null)
+        public async Task<string> MakeTradingDataSnapshot_TEST_ONLY([FromQuery] DateTime tradingDay, [FromQuery] string correlationId = null)
         {
             if (tradingDay == default)
             {
@@ -74,7 +74,7 @@ namespace MarginTrading.Backend.Controllers
                 correlationId = _identityGenerator.GenerateGuid();
             }
             
-            return await _snapshotService.MakeTradingDataSnapshotTest(tradingDay, correlationId);
+            return await _snapshotService.MakeTradingDataSnapshot_TEST_ONLY(tradingDay, correlationId);
         }
 
         /// <summary>

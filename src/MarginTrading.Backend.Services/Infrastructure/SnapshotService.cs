@@ -131,7 +131,7 @@ namespace MarginTrading.Backend.Services.Infrastructure
             }
         }
         
-        public async Task<string> MakeTradingDataSnapshotTest(DateTime tradingDay, string correlationId)
+        public async Task<string> MakeTradingDataSnapshot_TEST_ONLY(DateTime tradingDay, string correlationId)
         {
             if (_semaphoreSlim.CurrentCount == 0)
             {

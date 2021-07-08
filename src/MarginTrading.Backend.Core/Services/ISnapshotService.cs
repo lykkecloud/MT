@@ -9,6 +9,6 @@ namespace MarginTrading.Backend.Core.Services
     public interface ISnapshotService
     {
         Task<string> MakeTradingDataSnapshot(DateTime tradingDay, string correlationId);
-        Task<string> MakeTradingDataSnapshotTest(DateTime tradingDay, string correlationId);
+        Task<string> MakeTradingDataSnapshot_TEST_ONLY(DateTime tradingDay, string correlationId);
     }
 }

@@ -30,8 +30,8 @@ namespace MarginTrading.Backend.Contracts
         /// FOR TEST PURPOSES ONLY, SKIPS SOME CHECKS.
         /// </summary>
         /// <returns>Snapshot statistics.</returns>
-        [Post("/api/service/make-trading-data-snapshot")]
-        Task<string> MakeTradingDataSnapshotTest([Query] DateTime tradingDay, 
+        [Post("/api/service/make-trading-data-snapshot-test")]
+        Task<string> MakeTradingDataSnapshot_TEST_ONLY([Query] DateTime tradingDay, 
             [Query, CanBeNull] string correlationId = null);
         
         /// <summary>
